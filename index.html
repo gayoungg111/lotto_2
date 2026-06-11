@@ -1,0 +1,2187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>로또 번호 추첨기</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #ff385c;
+      --primary-active: #e00b41;
+      --primary-disabled: #ffd1da;
+      --primary-error-text: #c13515;
+      --ink: #222222;
+      --body: #3f3f3f;
+      --muted: #6a6a6a;
+      --muted-soft: #929292;
+      --hairline: #dddddd;
+      --hairline-soft: #ebebeb;
+      --border-strong: #c1c1c1;
+      --canvas: #ffffff;
+      --surface-soft: #f7f7f7;
+      --surface-strong: #f2f2f2;
+      --on-primary: #ffffff;
+      --legal-link: #428bff;
+      --rounded-xs: 4px;
+      --rounded-sm: 8px;
+      --rounded-md: 14px;
+      --rounded-lg: 20px;
+      --rounded-xl: 32px;
+      --rounded-full: 9999px;
+      --shadow-card: rgba(0, 0, 0, 0.02) 0 0 0 1px, rgba(0, 0, 0, 0.04) 0 2px 6px, rgba(0, 0, 0, 0.1) 0 4px 8px;
+      --font: "Inter", Circular, -apple-system, system-ui, Roboto, "Helvetica Neue", "Malgun Gothic", sans-serif;
+      --ball-yellow: #f5c518;
+      --ball-blue: #4a90d9;
+      --ball-red: #e74c3c;
+      --ball-gray: #95a5a6;
+      --ball-green: #2ecc71;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      font-family: var(--font);
+      background: var(--canvas);
+      color: var(--ink);
+      min-height: 100vh;
+      line-height: 1.5;
+      font-size: 16px;
+      font-weight: 400;
+    }
+
+    .top-nav {
+      position: sticky;
+      top: 0;
+      z-index: 40;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 80px;
+      padding: 0 24px;
+      background: var(--canvas);
+      border-bottom: 1px solid var(--hairline);
+    }
+
+    .nav-brand {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+    }
+
+    .nav-link {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--muted);
+      text-decoration: none;
+      white-space: nowrap;
+    }
+
+    .nav-link:hover {
+      color: var(--ink);
+    }
+
+    .nav-tabs {
+      display: flex;
+      align-items: center;
+      gap: 32px;
+    }
+
+    .nav-tab {
+      position: relative;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--muted);
+      text-decoration: none;
+      padding-bottom: 4px;
+    }
+
+    .nav-tab.active {
+      color: var(--ink);
+    }
+
+    .nav-tab.active::after {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: -2px;
+      height: 2px;
+      background: var(--ink);
+      border-radius: 2px;
+    }
+
+    .new-tag {
+      position: absolute;
+      top: -10px;
+      right: -18px;
+      font-size: 8px;
+      font-weight: 700;
+      letter-spacing: 0.32px;
+      text-transform: uppercase;
+      background: var(--canvas);
+      color: var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-full);
+      padding: 2px 6px;
+    }
+
+    .page {
+      max-width: 1120px;
+      margin: 0 auto;
+      padding: 48px 24px 120px;
+    }
+
+    .hero {
+      margin-bottom: 32px;
+    }
+
+    .hero h1 {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1.43;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .hero p {
+      font-size: 16px;
+      font-weight: 400;
+      line-height: 1.5;
+      color: var(--body);
+    }
+
+    .info-banner {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px 20px;
+      background: var(--surface-soft);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-md);
+      margin-bottom: 24px;
+    }
+
+    .info-banner.success {
+      background: var(--canvas);
+      box-shadow: var(--shadow-card);
+    }
+
+    .info-badge {
+      flex-shrink: 0;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.18;
+      background: var(--canvas);
+      color: var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-full);
+      padding: 4px 10px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .info-badge.primary {
+      background: var(--primary);
+      color: var(--on-primary);
+      border-color: var(--primary);
+    }
+
+    .info-text strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+
+    .info-text span {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.43;
+    }
+
+    .section {
+      margin-bottom: 48px;
+      scroll-margin-top: 96px;
+    }
+
+    .section-title {
+      font-size: 22px;
+      font-weight: 500;
+      line-height: 1.18;
+      letter-spacing: -0.44px;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .section-desc {
+      font-size: 14px;
+      color: var(--muted);
+      margin-bottom: 24px;
+      line-height: 1.43;
+    }
+
+    .card {
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-md);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .card:hover {
+      box-shadow: var(--shadow-card);
+    }
+
+    .draw-card {
+      padding: 24px;
+    }
+
+    .draw-stage {
+      background: var(--surface-soft);
+      border-radius: var(--rounded-md);
+      padding: 32px 24px;
+      margin-bottom: 24px;
+    }
+
+    .balls {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+      min-height: 64px;
+      margin-bottom: 12px;
+    }
+
+    .ball {
+      width: 52px;
+      height: 52px;
+      border-radius: var(--rounded-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      color: #fff;
+      transform: scale(0);
+      opacity: 0;
+      transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.25s ease;
+    }
+
+    .ball.show {
+      transform: scale(1);
+      opacity: 1;
+    }
+
+    .ball.shuffling {
+      animation: shuffle 0.12s ease infinite alternate;
+    }
+
+    @keyframes shuffle {
+      from { transform: scale(0.92) rotate(-4deg); }
+      to { transform: scale(1.05) rotate(4deg); }
+    }
+
+    .ball.yellow { background: var(--ball-yellow); color: var(--ink); }
+    .ball.blue { background: var(--ball-blue); }
+    .ball.red { background: var(--ball-red); }
+    .ball.gray { background: var(--ball-gray); }
+    .ball.green { background: var(--ball-green); }
+
+    .bonus-wrap {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 52px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .bonus-wrap.visible {
+      opacity: 1;
+    }
+
+    .bonus-label {
+      font-size: 12px;
+      font-weight: 700;
+      line-height: 1.33;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .plus {
+      font-size: 16px;
+      color: var(--muted-soft);
+    }
+
+    .ball.bonus-highlight {
+      box-shadow: 0 0 0 3px var(--canvas), 0 0 0 5px var(--primary);
+    }
+
+    .controls {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer;
+      border: none;
+      font-size: 16px;
+      font-weight: 500;
+      line-height: 1.25;
+      transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+    }
+
+    .btn-primary {
+      flex: 1;
+      height: 48px;
+      padding: 14px 24px;
+      background: var(--primary);
+      color: var(--on-primary);
+      border-radius: var(--rounded-sm);
+    }
+
+    .btn-primary:hover:not(:disabled) {
+      background: var(--primary-active);
+    }
+
+    .btn-primary:disabled {
+      background: var(--primary-disabled);
+      color: var(--on-primary);
+    }
+
+    .btn-secondary {
+      height: 48px;
+      padding: 13px 23px;
+      background: var(--canvas);
+      color: var(--ink);
+      border: 1px solid var(--ink);
+      border-radius: var(--rounded-sm);
+    }
+
+    .btn-secondary:hover:not(:disabled) {
+      background: var(--surface-soft);
+    }
+
+    .btn-tertiary {
+      height: auto;
+      padding: 4px 0;
+      background: transparent;
+      color: var(--ink);
+      font-size: 14px;
+      font-weight: 400;
+      text-decoration: underline;
+      text-underline-offset: 3px;
+    }
+
+    .options {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .option {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--body);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .option input {
+      accent-color: var(--primary);
+      width: 16px;
+      height: 16px;
+    }
+
+    .count-select {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .text-input,
+    .count-select select {
+      font-family: inherit;
+      background: var(--canvas);
+      color: var(--ink);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-sm);
+      font-size: 16px;
+      font-weight: 400;
+      height: 48px;
+      padding: 14px 12px;
+    }
+
+    .count-select select {
+      cursor: pointer;
+      height: 40px;
+      padding: 8px 12px;
+      font-size: 14px;
+    }
+
+    .text-input:focus,
+    .count-select select:focus {
+      outline: none;
+      border: 2px solid var(--ink);
+    }
+
+    .search-pill {
+      display: flex;
+      align-items: center;
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-full);
+      box-shadow: var(--shadow-card);
+      margin-bottom: 24px;
+      overflow: hidden;
+    }
+
+    .search-segment {
+      flex: 1;
+      padding: 12px 24px;
+      min-width: 0;
+    }
+
+    .segment-label {
+      display: block;
+      font-size: 14px;
+      font-weight: 500;
+      line-height: 1.29;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+
+    .search-segment .text-input {
+      width: 100%;
+      height: auto;
+      border: none;
+      padding: 0;
+      font-size: 14px;
+      color: var(--muted);
+      background: transparent;
+    }
+
+    .search-segment .text-input:focus {
+      border: none;
+      color: var(--ink);
+    }
+
+    .search-segment .text-input::placeholder {
+      color: var(--muted-soft);
+    }
+
+    .search-divider {
+      width: 1px;
+      align-self: stretch;
+      background: var(--hairline);
+      flex-shrink: 0;
+    }
+
+    .search-orb {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      margin: 8px;
+      border-radius: var(--rounded-full);
+      background: var(--primary);
+      color: var(--on-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+
+    .search-orb:hover {
+      background: var(--primary-active);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 24px 24px 0;
+      gap: 16px;
+    }
+
+    .card-header h2 {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    .card-header .meta {
+      font-size: 14px;
+      color: var(--muted);
+      margin-top: 4px;
+      line-height: 1.43;
+    }
+
+    .list {
+      list-style: none;
+      max-height: 360px;
+      overflow-y: auto;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding: 16px 24px;
+      border-top: 1px solid var(--hairline-soft);
+      font-size: 14px;
+    }
+
+    .list-item:hover {
+      background: var(--surface-soft);
+    }
+
+    .list-index {
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 600;
+      min-width: 56px;
+      white-space: nowrap;
+    }
+
+    .list-balls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      flex: 1;
+      align-items: center;
+    }
+
+    .mini-ball {
+      width: 32px;
+      height: 32px;
+      border-radius: var(--rounded-full);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+      font-weight: 700;
+      color: #fff;
+    }
+
+    .mini-ball.yellow { background: var(--ball-yellow); color: var(--ink); }
+    .mini-ball.blue { background: var(--ball-blue); }
+    .mini-ball.red { background: var(--ball-red); }
+    .mini-ball.gray { background: var(--ball-gray); }
+    .mini-ball.green { background: var(--ball-green); }
+
+    .list-bonus {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .list-time,
+    .list-date {
+      color: var(--muted);
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .list-footer {
+      display: flex;
+      justify-content: center;
+      padding: 16px 24px 24px;
+    }
+
+    .empty-msg,
+    .loading-msg {
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 14px;
+    }
+
+    .error-msg {
+      padding: 32px 24px;
+      text-align: center;
+      color: var(--primary-error-text);
+      font-size: 14px;
+    }
+
+    .bottom-widget {
+      position: fixed;
+      left: 24px;
+      bottom: 24px;
+      max-width: 280px;
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-md);
+      padding: 24px;
+      box-shadow: var(--shadow-card);
+      z-index: 30;
+    }
+
+    .widget-label {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+      color: var(--ink);
+      margin-bottom: 8px;
+    }
+
+    .widget-content {
+      font-size: 14px;
+      color: var(--body);
+      line-height: 1.43;
+    }
+
+    .widget-balls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .site-footer {
+      border-top: 1px solid var(--hairline-soft);
+      padding-top: 32px;
+      margin-top: 16px;
+    }
+
+    .legal-band {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.23;
+      text-align: center;
+    }
+
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 100;
+    }
+
+    .modal-overlay[hidden] {
+      display: none;
+    }
+
+    .modal {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      background: var(--canvas);
+      border-radius: var(--rounded-lg);
+      padding: 32px 24px 24px;
+      box-shadow: var(--shadow-card);
+    }
+
+    .modal h3 {
+      font-size: 21px;
+      font-weight: 700;
+      line-height: 1.43;
+      margin-bottom: 8px;
+    }
+
+    .modal p {
+      color: var(--body);
+      font-size: 16px;
+      line-height: 1.5;
+      margin-bottom: 24px;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      width: 32px;
+      height: 32px;
+      border-radius: var(--rounded-full);
+      background: var(--surface-strong);
+      color: var(--ink);
+      font-size: 18px;
+      line-height: 1;
+      border: none;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .modal-actions .btn-primary,
+    .modal-actions .btn-secondary {
+      flex: none;
+      min-width: 120px;
+    }
+
+    .modal.signup-modal {
+      max-width: 480px;
+    }
+
+    .modal.signup-modal .modal-lead {
+      font-size: 15px;
+      color: var(--body);
+      margin-bottom: 20px;
+      line-height: 1.5;
+    }
+
+    .modal.signup-modal .modal-highlight {
+      display: block;
+      margin-top: 8px;
+      padding: 12px 14px;
+      background: var(--surface-soft);
+      border-radius: var(--rounded-sm);
+      font-size: 14px;
+      color: var(--ink);
+      border-left: 3px solid var(--primary);
+    }
+
+    .signup-form {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .form-field {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .form-field label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .form-field .text-input {
+      width: 100%;
+    }
+
+    .form-error {
+      font-size: 13px;
+      color: var(--primary-error-text);
+      min-height: 18px;
+    }
+
+    .signup-success {
+      text-align: center;
+      padding: 12px 0 4px;
+    }
+
+    .signup-success .info-badge.primary {
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+
+    .reviews-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+    }
+
+    .review-card {
+      padding: 24px;
+      background: var(--canvas);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-md);
+      transition: box-shadow 0.2s ease;
+    }
+
+    .review-card:hover {
+      box-shadow: var(--shadow-card);
+    }
+
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    .review-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--rounded-full);
+      background: var(--primary);
+      color: var(--on-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: 600;
+      flex-shrink: 0;
+    }
+
+    .review-name {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+    }
+
+    .review-meta {
+      font-size: 13px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .review-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--primary);
+      background: #fff0f3;
+      border: 1px solid #ffd1da;
+      border-radius: var(--rounded-full);
+      padding: 3px 10px;
+      margin-bottom: 10px;
+    }
+
+    .review-text {
+      font-size: 14px;
+      color: var(--body);
+      line-height: 1.55;
+    }
+
+    .review-numbers {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 12px;
+    }
+
+    .chat-card {
+      display: flex;
+      flex-direction: column;
+      min-height: 520px;
+    }
+
+    .chat-setup {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-end;
+      gap: 12px;
+      padding: 24px;
+      border-bottom: 1px solid var(--hairline-soft);
+      background: var(--surface-soft);
+    }
+
+    .chat-setup label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      width: 100%;
+      margin-bottom: -4px;
+    }
+
+    .chat-setup .text-input {
+      flex: 1;
+      min-width: 180px;
+    }
+
+    .chat-setup .btn-primary {
+      flex: none;
+      white-space: nowrap;
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      min-height: 280px;
+      max-height: 480px;
+    }
+
+    .chat-bubble {
+      max-width: 88%;
+      padding: 14px 16px;
+      border-radius: var(--rounded-md);
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    .chat-bubble.user {
+      align-self: flex-end;
+      background: var(--primary);
+      color: var(--on-primary);
+      border-bottom-right-radius: var(--rounded-xs);
+    }
+
+    .chat-bubble.assistant {
+      align-self: flex-start;
+      background: var(--surface-soft);
+      color: var(--ink);
+      border: 1px solid var(--hairline);
+      border-bottom-left-radius: var(--rounded-xs);
+    }
+
+    .chat-bubble.loading {
+      color: var(--muted);
+      font-style: italic;
+    }
+
+    .chat-bubble .chat-label {
+      font-size: 12px;
+      font-weight: 700;
+      color: var(--primary);
+      margin-bottom: 8px;
+    }
+
+    .chat-bubble.user .chat-label {
+      color: rgba(255, 255, 255, 0.85);
+    }
+
+    .chat-fortune {
+      font-size: 14px;
+      color: var(--body);
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--hairline-soft);
+    }
+
+    .chat-explanation {
+      font-size: 14px;
+      color: var(--body);
+      margin-bottom: 12px;
+    }
+
+    .chat-balls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 12px;
+    }
+
+    .chat-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .chat-actions .btn-secondary {
+      height: 40px;
+      padding: 8px 16px;
+      font-size: 14px;
+    }
+
+    .chat-input-row {
+      display: flex;
+      gap: 8px;
+      padding: 16px 24px 24px;
+      border-top: 1px solid var(--hairline-soft);
+    }
+
+    .chat-input-row .text-input {
+      flex: 1;
+    }
+
+    .chat-input-row .btn-secondary {
+      flex: none;
+      height: 48px;
+    }
+
+    .ai-promo {
+      margin-top: 8px;
+      padding: 20px;
+      background: var(--surface-soft);
+      border: 1px solid var(--hairline);
+      border-radius: var(--rounded-md);
+    }
+
+    .ai-promo-header {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .ai-promo-header strong {
+      display: block;
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.25;
+      margin-bottom: 4px;
+    }
+
+    .ai-promo-header span {
+      font-size: 14px;
+      color: var(--muted);
+      line-height: 1.43;
+    }
+
+    .ai-promo-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .ai-promo-row label {
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--ink);
+      width: 100%;
+    }
+
+    .ai-promo-row .text-input {
+      flex: 1;
+      min-width: 160px;
+    }
+
+    .ai-promo-row .btn-primary {
+      flex: none;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 744px) {
+      .top-nav {
+        height: 64px;
+        padding: 0 16px;
+      }
+
+      .nav-tabs {
+        gap: 16px;
+      }
+
+      .nav-tab {
+        font-size: 14px;
+      }
+
+      .new-tag {
+        display: none;
+      }
+
+      .page {
+        padding: 32px 16px 140px;
+      }
+
+      .hero h1 {
+        font-size: 22px;
+      }
+
+      .search-pill {
+        flex-direction: column;
+        border-radius: var(--rounded-md);
+      }
+
+      .search-divider {
+        width: 100%;
+        height: 1px;
+      }
+
+      .search-segment {
+        width: 100%;
+      }
+
+      .search-orb {
+        width: calc(100% - 16px);
+        border-radius: var(--rounded-sm);
+        margin: 8px;
+        height: 48px;
+      }
+
+      .btn-row {
+        flex-direction: column;
+      }
+
+      .btn-primary,
+      .btn-secondary {
+        width: 100%;
+      }
+
+      .list-item {
+        flex-wrap: wrap;
+      }
+
+      .list-date {
+        width: 100%;
+        padding-left: 72px;
+      }
+
+      .bottom-widget {
+        left: 16px;
+        right: 16px;
+        max-width: none;
+      }
+
+      .reviews-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="nav-brand">로또</div>
+    <div class="nav-tabs">
+      <a href="#draw" class="nav-tab active" data-section="draw">번호 추첨</a>
+      <a href="#winners" class="nav-tab" data-section="winners">역대 당첨<span class="new-tag">NEW</span></a>
+      <a href="#history" class="nav-tab" data-section="history">내 기록</a>
+      <a href="#chatbot" class="nav-tab" data-section="chatbot">오늘의 추천<span class="new-tag">AI</span></a>
+    </div>
+    <a href="../실습용 2/smalltalk.html" class="nav-link">스몰토크 →</a>
+  </nav>
+
+  <div class="page">
+    <div class="hero">
+      <h1>로또 번호 추첨기</h1>
+      <p>1~45 중 중복 없이 6개 번호를 추첨하거나, AI가 오늘의 운세로 번호를 추천해 드립니다.</p>
+    </div>
+
+    <div class="info-banner" id="infoBanner">
+      <span class="info-badge">안내</span>
+      <div class="info-text">
+        <strong>번호 추첨 · AI 추천</strong>
+        <span>무작위 추첨 또는 생년월일·오늘 운세 기반 <strong>오늘의 번호 추천받기</strong>를 이용해 보세요.</span>
+      </div>
+    </div>
+
+    <section class="section" id="draw">
+      <h2 class="section-title">번호 추첨</h2>
+      <p class="section-desc">버튼을 눌러 새 번호 조합을 생성하세요.</p>
+
+      <div class="card draw-card">
+        <div class="draw-stage">
+          <div class="balls" id="balls" aria-live="polite"></div>
+          <div class="bonus-wrap" id="bonusWrap">
+            <span class="bonus-label">보너스</span>
+            <span class="plus">+</span>
+            <div class="ball" id="bonusBall"></div>
+          </div>
+        </div>
+
+        <div class="controls">
+          <div class="btn-row">
+            <button class="btn-primary" id="drawBtn" type="button">번호 추첨하기</button>
+            <button class="btn-secondary" id="autoBtn" type="button">자동 5회</button>
+          </div>
+          <div class="options">
+            <label class="option">
+              <input type="checkbox" id="animateDraw" checked>
+              추첨 애니메이션
+            </label>
+            <div class="count-select">
+              <label for="setCount">한 번에</label>
+              <select id="setCount">
+                <option value="1">1세트</option>
+                <option value="3">3세트</option>
+                <option value="5" selected>5세트</option>
+                <option value="10">10세트</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="ai-promo">
+            <div class="ai-promo-header">
+              <span class="info-badge primary">AI</span>
+              <div>
+                <strong>오늘의 번호 추천받기</strong>
+                <span>생년월일과 오늘의 운세를 반영해 AI가 번호와 추천 이유를 알려드립니다.</span>
+              </div>
+            </div>
+            <div class="ai-promo-row">
+              <label for="birthDate">생년월일</label>
+              <input class="text-input" id="birthDate" type="date" max="2026-12-31">
+              <button class="btn-primary" id="recommendBtn" type="button">오늘의 번호 추천받기</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="winners">
+      <h2 class="section-title">역대 1등 당첨번호</h2>
+      <p class="section-desc" id="winnersMeta">데이터 불러오는 중...</p>
+
+      <div class="search-pill">
+        <div class="search-segment">
+          <label class="segment-label" for="roundSearch">회차</label>
+          <input class="text-input" id="roundSearch" type="number" min="1" placeholder="예: 1227">
+        </div>
+        <div class="search-divider"></div>
+        <div class="search-segment">
+          <label class="segment-label" for="numberFilter">번호 포함</label>
+          <input class="text-input wide" id="numberFilter" type="number" min="1" max="45" placeholder="1~45">
+        </div>
+        <button class="search-orb" id="resetFilterBtn" type="button" aria-label="필터 초기화">⌕</button>
+      </div>
+
+      <div class="card">
+        <ul class="list" id="winnersList"></ul>
+        <div class="list-footer" id="winnersFooter" hidden>
+          <button class="btn-tertiary" id="loadMoreBtn" type="button">더 보기</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="history">
+      <h2 class="section-title">내 추첨 기록</h2>
+      <p class="section-desc">최근 50회까지 브라우저에 저장됩니다.</p>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>저장된 번호</h2>
+          <button class="btn-tertiary" id="clearBtn" type="button">기록 지우기</button>
+        </div>
+        <ul class="list" id="historyList"></ul>
+      </div>
+    </section>
+
+    <section class="section" id="chatbot">
+      <h2 class="section-title">AI 운세 챗봇</h2>
+      <p class="section-desc">추천 결과와 대화 기록을 확인하고, 추가 질문도 할 수 있습니다.</p>
+
+      <div class="card chat-card">
+        <div class="chat-messages" id="chatMessages" aria-live="polite"></div>
+
+        <div class="chat-input-row">
+          <input class="text-input" id="chatInput" type="text" placeholder="추가로 궁금한 점을 물어보세요..." maxlength="200">
+          <button class="btn-secondary" id="chatSendBtn" type="button">전송</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="reviews">
+      <h2 class="section-title">당첨 후기</h2>
+      <p class="section-desc">AI 로또 번호 추천 서비스를 이용해 1등에 당첨하신 분들의 후기입니다.</p>
+
+      <div class="reviews-grid">
+        <article class="review-card">
+          <span class="review-badge">1등 당첨</span>
+          <div class="review-header">
+            <div class="review-avatar">김</div>
+            <div>
+              <div class="review-name">김민준</div>
+              <div class="review-meta">서울 · 2025년 11월 당첨</div>
+            </div>
+          </div>
+          <p class="review-text">AI가 추천해 준 번호 그대로 구매했는데 1등이 됐어요. 생년월일 운세 설명이 너무 정확해서 믿고 샀습니다. 앞으로도 이 서비스만 믿을 거예요!</p>
+          <div class="review-numbers">
+            <span class="mini-ball yellow">3</span>
+            <span class="mini-ball blue">14</span>
+            <span class="mini-ball blue">19</span>
+            <span class="mini-ball red">27</span>
+            <span class="mini-ball gray">33</span>
+            <span class="mini-ball green">41</span>
+          </div>
+        </article>
+
+        <article class="review-card">
+          <span class="review-badge">1등 당첨</span>
+          <div class="review-header">
+            <div class="review-avatar">이</div>
+            <div>
+              <div class="review-name">이서연</div>
+              <div class="review-meta">부산 · 2025년 9월 당첨</div>
+            </div>
+          </div>
+          <p class="review-text">처음엔 반신반의했는데 오늘의 운세 기반 추천 번호로 1등 당첨! 번호마다 추천 이유를 알려줘서 더 신뢰가 갔어요. 주변 친구들에게도 꼭 추천하고 있습니다.</p>
+          <div class="review-numbers">
+            <span class="mini-ball yellow">7</span>
+            <span class="mini-ball blue">12</span>
+            <span class="mini-ball red">23</span>
+            <span class="mini-ball red">28</span>
+            <span class="mini-ball gray">36</span>
+            <span class="mini-ball green">44</span>
+          </div>
+        </article>
+
+        <article class="review-card">
+          <span class="review-badge">1등 당첨</span>
+          <div class="review-header">
+            <div class="review-avatar">박</div>
+            <div>
+              <div class="review-name">박지훈</div>
+              <div class="review-meta">대구 · 2026년 1월 당첨</div>
+            </div>
+          </div>
+          <p class="review-text">3개월 동안 AI 추천 번호만 구매했는데 드디어 1등! 가입 후 매주 추천 알림을 받았고, 그 번호가 당첨됐습니다. 인생이 바뀌었어요.</p>
+          <div class="review-numbers">
+            <span class="mini-ball yellow">2</span>
+            <span class="mini-ball blue">11</span>
+            <span class="mini-ball blue">18</span>
+            <span class="mini-ball red">25</span>
+            <span class="mini-ball gray">38</span>
+            <span class="mini-ball green">45</span>
+          </div>
+        </article>
+
+        <article class="review-card">
+          <span class="review-badge">1등 당첨</span>
+          <div class="review-header">
+            <div class="review-avatar">최</div>
+            <div>
+              <div class="review-name">최유진</div>
+              <div class="review-meta">인천 · 2026년 3월 당첨</div>
+            </div>
+          </div>
+          <p class="review-text">운세 기반 번호 추천이 정말 신기해요. 추천받은 번호 6개 + 보너스 번호가 그대로 1등 당첨 번호와 일치했습니다. 가입하길 정말 잘했어요!</p>
+          <div class="review-numbers">
+            <span class="mini-ball yellow">5</span>
+            <span class="mini-ball blue">16</span>
+            <span class="mini-ball red">22</span>
+            <span class="mini-ball red">29</span>
+            <span class="mini-ball gray">34</span>
+            <span class="mini-ball green">42</span>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <footer class="site-footer">
+      <div class="legal-band">© 2026 로또 번호 추첨기 · 한국 로또 6/45 · 역대 당첨번호 1회~최신회</div>
+    </footer>
+  </div>
+
+  <div class="bottom-widget" id="bottomWidget">
+    <div class="widget-label">최신 1등 당첨</div>
+    <div class="widget-content" id="widgetContent">데이터 불러오는 중...</div>
+  </div>
+
+  <div class="modal-overlay" id="confirmModal" hidden>
+    <div class="modal" role="dialog" aria-labelledby="modalTitle" aria-modal="true">
+      <button class="modal-close" id="modalClose" type="button" aria-label="닫기">×</button>
+      <h3 id="modalTitle">기록 지우기</h3>
+      <p>추첨 기록을 모두 삭제할까요? 이 작업은 되돌릴 수 없습니다.</p>
+      <div class="modal-actions">
+        <button class="btn-secondary" id="modalCancel" type="button">취소</button>
+        <button class="btn-primary" id="modalConfirm" type="button">삭제하기</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="signupModal" hidden>
+    <div class="modal signup-modal" role="dialog" aria-labelledby="signupTitle" aria-modal="true">
+      <button class="modal-close" id="signupClose" type="button" aria-label="닫기">×</button>
+
+      <div id="signupFormWrap">
+        <h3 id="signupTitle">AI 로또 번호 추천 서비스 가입</h3>
+        <p class="modal-lead">
+          앞으로 AI 기반으로 맞춤 로또 번호를 추천해 드리겠습니다.
+          <span class="modal-highlight">생년월일·오늘의 운세를 반영한 개인 맞춤 번호와 당첨 알림을 받으려면 가입해 주세요.</span>
+        </p>
+
+        <form class="signup-form" id="signupForm" novalidate>
+          <div class="form-field">
+            <label for="signupName">이름</label>
+            <input class="text-input" id="signupName" type="text" placeholder="홍길동" required maxlength="20">
+          </div>
+          <div class="form-field">
+            <label for="signupPhone">전화번호</label>
+            <input class="text-input" id="signupPhone" type="tel" placeholder="010-1234-5678" required maxlength="13">
+          </div>
+          <div class="form-field">
+            <label for="signupEmail">이메일</label>
+            <input class="text-input" id="signupEmail" type="email" placeholder="example@email.com" required maxlength="60">
+          </div>
+          <div class="form-error" id="signupError"></div>
+        </form>
+
+        <div class="modal-actions">
+          <button class="btn-secondary" id="signupLaterBtn" type="button">나중에</button>
+          <button class="btn-primary" id="signupSubmitBtn" type="button">가입하기</button>
+        </div>
+      </div>
+
+      <div id="signupSuccessWrap" hidden>
+        <div class="signup-success">
+          <span class="info-badge primary">가입 완료</span>
+          <h3>환영합니다!</h3>
+          <p class="modal-lead">앞으로 AI가 맞춤 로또 번호를 추천해 드립니다. 매주 추천 번호를 이메일로 보내드릴게요.</p>
+          <button class="btn-primary" id="signupDoneBtn" type="button" style="width:100%;margin-top:8px;">확인</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const MIN = 1;
+    const MAX = 45;
+    const PICK = 6;
+    const PAGE_SIZE = 50;
+    const LOTTO_URLS = ["lotto-data.json", "https://smok95.github.io/lotto/results/all.json"];
+
+    const ballsEl = document.getElementById("balls");
+    const bonusWrap = document.getElementById("bonusWrap");
+    const bonusBall = document.getElementById("bonusBall");
+    const drawBtn = document.getElementById("drawBtn");
+    const autoBtn = document.getElementById("autoBtn");
+    const clearBtn = document.getElementById("clearBtn");
+    const historyList = document.getElementById("historyList");
+    const animateDraw = document.getElementById("animateDraw");
+    const setCount = document.getElementById("setCount");
+    const winnersList = document.getElementById("winnersList");
+    const winnersMeta = document.getElementById("winnersMeta");
+    const winnersFooter = document.getElementById("winnersFooter");
+    const loadMoreBtn = document.getElementById("loadMoreBtn");
+    const roundSearch = document.getElementById("roundSearch");
+    const numberFilter = document.getElementById("numberFilter");
+    const resetFilterBtn = document.getElementById("resetFilterBtn");
+    const infoBanner = document.getElementById("infoBanner");
+    const widgetContent = document.getElementById("widgetContent");
+    const confirmModal = document.getElementById("confirmModal");
+    const modalClose = document.getElementById("modalClose");
+    const modalCancel = document.getElementById("modalCancel");
+    const modalConfirm = document.getElementById("modalConfirm");
+    const signupModal = document.getElementById("signupModal");
+    const signupFormWrap = document.getElementById("signupFormWrap");
+    const signupSuccessWrap = document.getElementById("signupSuccessWrap");
+    const signupForm = document.getElementById("signupForm");
+    const signupName = document.getElementById("signupName");
+    const signupPhone = document.getElementById("signupPhone");
+    const signupEmail = document.getElementById("signupEmail");
+    const signupError = document.getElementById("signupError");
+    const signupClose = document.getElementById("signupClose");
+    const signupLaterBtn = document.getElementById("signupLaterBtn");
+    const signupSubmitBtn = document.getElementById("signupSubmitBtn");
+    const signupDoneBtn = document.getElementById("signupDoneBtn");
+    const navTabs = document.querySelectorAll(".nav-tab");
+    const birthDateInput = document.getElementById("birthDate");
+    const recommendBtn = document.getElementById("recommendBtn");
+    const chatMessages = document.getElementById("chatMessages");
+    const chatInput = document.getElementById("chatInput");
+    const chatSendBtn = document.getElementById("chatSendBtn");
+
+    let isDrawing = false;
+    let isChatLoading = false;
+    let chatHistory = [];
+    let history = loadHistory();
+    let allWinners = [];
+    let filteredWinners = [];
+    let visibleCount = PAGE_SIZE;
+
+    function getBallColor(num) {
+      if (num <= 10) return "yellow";
+      if (num <= 20) return "blue";
+      if (num <= 30) return "red";
+      if (num <= 40) return "gray";
+      return "green";
+    }
+
+    function pickNumbers() {
+      const pool = Array.from({ length: MAX }, (_, i) => i + MIN);
+      const main = [];
+
+      for (let i = 0; i < PICK; i++) {
+        const idx = Math.floor(Math.random() * pool.length);
+        main.push(pool.splice(idx, 1)[0]);
+      }
+
+      main.sort((a, b) => a - b);
+
+      const bonusIdx = Math.floor(Math.random() * pool.length);
+      const bonus = pool[bonusIdx];
+
+      return { main, bonus };
+    }
+
+    function createBall(num, mini = false) {
+      const el = document.createElement(mini ? "span" : "div");
+      el.className = `${mini ? "mini-ball" : "ball"} ${getBallColor(num)}`;
+      el.textContent = num;
+      return el;
+    }
+
+    function renderBallGroup(container, numbers, bonus = null) {
+      numbers.forEach((num) => container.appendChild(createBall(num, true)));
+
+      if (bonus !== null) {
+        const bonusGroup = document.createElement("div");
+        bonusGroup.className = "list-bonus";
+        const plus = document.createElement("span");
+        plus.textContent = "+";
+        plus.style.color = "var(--muted-soft)";
+        bonusGroup.appendChild(plus);
+        bonusGroup.appendChild(createBall(bonus, true));
+        container.appendChild(bonusGroup);
+      }
+    }
+
+    function renderPlaceholderBalls() {
+      ballsEl.innerHTML = "";
+      for (let i = 0; i < PICK; i++) {
+        const ball = createBall("?");
+        ball.textContent = "?";
+        ball.style.opacity = "0.5";
+        ball.style.transform = "scale(1)";
+        ball.classList.remove("yellow", "blue", "red", "gray", "green");
+        ball.style.background = "var(--canvas)";
+        ball.style.color = "var(--muted)";
+        ball.style.border = "1px dashed var(--hairline)";
+        ballsEl.appendChild(ball);
+      }
+      bonusWrap.classList.remove("visible");
+      bonusBall.textContent = "";
+      bonusBall.className = "ball";
+    }
+
+    function sleep(ms) {
+      return new Promise((resolve) => setTimeout(resolve, ms));
+    }
+
+    async function animateDrawResult(result) {
+      const placeholders = [...ballsEl.children];
+      const { main, bonus } = result;
+
+      for (let i = 0; i < PICK; i++) {
+        const ball = placeholders[i];
+        ball.classList.add("shuffling");
+        ball.textContent = Math.floor(Math.random() * MAX) + 1;
+
+        await sleep(80 + i * 40);
+
+        ball.classList.remove("shuffling");
+        ball.className = `ball ${getBallColor(main[i])}`;
+        ball.textContent = main[i];
+        ball.classList.add("show");
+      }
+
+      bonusWrap.classList.add("visible");
+      bonusBall.classList.add("shuffling");
+      bonusBall.textContent = Math.floor(Math.random() * MAX) + 1;
+
+      await sleep(200);
+
+      bonusBall.classList.remove("shuffling");
+      bonusBall.className = `ball show bonus-highlight ${getBallColor(bonus)}`;
+      bonusBall.textContent = bonus;
+    }
+
+    function showResultInstant(result) {
+      ballsEl.innerHTML = "";
+      result.main.forEach((num) => {
+        const ball = createBall(num);
+        ball.classList.add("show");
+        ballsEl.appendChild(ball);
+      });
+
+      bonusWrap.classList.add("visible");
+      bonusBall.className = `ball show bonus-highlight ${getBallColor(result.bonus)}`;
+      bonusBall.textContent = result.bonus;
+    }
+
+    function showDrawSuccess() {
+      infoBanner.className = "info-banner success";
+      infoBanner.innerHTML = `
+        <span class="info-badge primary">완료</span>
+        <div class="info-text">
+          <strong>추첨 완료</strong>
+          <span>새 번호가 생성되었습니다. 내 추첨 기록에서 확인할 수 있습니다.</span>
+        </div>
+      `;
+    }
+
+    function resetInfoBanner() {
+      infoBanner.className = "info-banner";
+      infoBanner.innerHTML = `
+        <span class="info-badge">안내</span>
+        <div class="info-text">
+        <strong>번호 추첨 · AI 추천</strong>
+        <span>무작위 추첨 또는 생년월일·오늘 운세 기반 오늘의 번호 추천받기를 이용해 보세요.</span>
+        </div>
+      `;
+    }
+
+    function formatTime(date) {
+      return date.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
+      });
+    }
+
+    function formatDate(dateStr) {
+      const date = new Date(dateStr);
+      return date.toLocaleDateString("ko-KR", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+      });
+    }
+
+    function updateBottomWidget(item) {
+      if (!item) {
+        widgetContent.textContent = "당첨 데이터가 없습니다.";
+        return;
+      }
+
+      widgetContent.innerHTML = `
+        <div>${item.draw_no}회 · ${formatDate(item.date)}</div>
+        <div class="widget-balls" id="widgetBalls"></div>
+      `;
+      const widgetBalls = document.getElementById("widgetBalls");
+      renderBallGroup(widgetBalls, item.numbers, item.bonus_no);
+    }
+
+    function addToHistory(result) {
+      const entry = {
+        main: result.main,
+        bonus: result.bonus,
+        time: new Date().toISOString(),
+      };
+      history.unshift(entry);
+      if (history.length > 50) history = history.slice(0, 50);
+      saveHistory();
+      renderHistory();
+    }
+
+    function renderHistory() {
+      historyList.innerHTML = "";
+
+      if (history.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "empty-msg";
+        empty.textContent = "아직 추첨 기록이 없습니다.";
+        historyList.appendChild(empty);
+        return;
+      }
+
+      history.forEach((entry, index) => {
+        const li = document.createElement("li");
+        li.className = "list-item";
+
+        const idx = document.createElement("span");
+        idx.className = "list-index";
+        idx.textContent = `${index + 1}.`;
+
+        const balls = document.createElement("div");
+        balls.className = "list-balls";
+        renderBallGroup(balls, entry.main, entry.bonus ?? null);
+
+        const time = document.createElement("span");
+        time.className = "list-time";
+        time.textContent = formatTime(new Date(entry.time));
+
+        li.appendChild(idx);
+        li.appendChild(balls);
+        li.appendChild(time);
+        historyList.appendChild(li);
+      });
+    }
+
+    function loadHistory() {
+      try {
+        const raw = localStorage.getItem("lotto-history");
+        return raw ? JSON.parse(raw) : [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveHistory() {
+      localStorage.setItem("lotto-history", JSON.stringify(history));
+    }
+
+    function setDrawingState(drawing) {
+      isDrawing = drawing;
+      drawBtn.disabled = drawing;
+      autoBtn.disabled = drawing;
+    }
+
+    function openConfirmModal() {
+      confirmModal.hidden = false;
+    }
+
+    function closeConfirmModal() {
+      confirmModal.hidden = true;
+    }
+
+    function isUserSignedUp() {
+      return localStorage.getItem("lotto-signed-up") === "true";
+    }
+
+    function openSignupModal() {
+      if (isUserSignedUp()) return;
+      signupFormWrap.hidden = false;
+      signupSuccessWrap.hidden = true;
+      signupError.textContent = "";
+      signupModal.hidden = false;
+    }
+
+    function closeSignupModal() {
+      signupModal.hidden = true;
+    }
+
+    function showSignupModalAfterDraw() {
+      if (!isUserSignedUp()) {
+        setTimeout(openSignupModal, 600);
+      }
+    }
+
+    function formatPhone(value) {
+      const digits = value.replace(/\D/g, "").slice(0, 11);
+      if (digits.length <= 3) return digits;
+      if (digits.length <= 7) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+      return `${digits.slice(0, 3)}-${digits.slice(3, 7)}-${digits.slice(7)}`;
+    }
+
+    function validateSignupForm() {
+      const name = signupName.value.trim();
+      const phone = signupPhone.value.trim();
+      const email = signupEmail.value.trim();
+
+      if (!name || name.length < 2) {
+        signupError.textContent = "이름을 2자 이상 입력해 주세요.";
+        signupName.focus();
+        return null;
+      }
+
+      const phoneDigits = phone.replace(/\D/g, "");
+      if (!/^01[016789]\d{7,8}$/.test(phoneDigits)) {
+        signupError.textContent = "올바른 전화번호를 입력해 주세요. (예: 010-1234-5678)";
+        signupPhone.focus();
+        return null;
+      }
+
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        signupError.textContent = "올바른 이메일 주소를 입력해 주세요.";
+        signupEmail.focus();
+        return null;
+      }
+
+      signupError.textContent = "";
+      return { name, phone: formatPhone(phoneDigits), email };
+    }
+
+    async function submitSignup() {
+      const data = validateSignupForm();
+      if (!data) return;
+
+      signupSubmitBtn.disabled = true;
+      signupSubmitBtn.textContent = "가입 중...";
+
+      try {
+        const res = await fetch("/api/signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(data),
+        });
+
+        const result = await res.json().catch(() => ({}));
+
+        if (!res.ok) {
+          signupError.textContent = result.error || "가입에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+          return;
+        }
+
+        localStorage.setItem("lotto-signed-up", "true");
+        localStorage.setItem("lotto-member-name", data.name);
+
+        signupFormWrap.hidden = true;
+        signupSuccessWrap.hidden = false;
+      } catch {
+        signupError.textContent = "서버에 연결할 수 없습니다. Vercel 배포 및 Supabase 설정을 확인해 주세요.";
+      } finally {
+        signupSubmitBtn.disabled = false;
+        signupSubmitBtn.textContent = "가입하기";
+      }
+    }
+
+    function updateActiveNav() {
+      const sections = ["draw", "winners", "history", "chatbot", "reviews"];
+      let current = sections[0];
+
+      sections.forEach((id) => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        if (rect.top <= 120) current = id;
+      });
+
+      navTabs.forEach((tab) => {
+        tab.classList.toggle("active", tab.dataset.section === current);
+      });
+    }
+
+    async function drawOnce({ addHistory = true } = {}) {
+      resetInfoBanner();
+      const result = pickNumbers();
+
+      if (animateDraw.checked) {
+        renderPlaceholderBalls();
+        await animateDrawResult(result);
+      } else {
+        showResultInstant(result);
+      }
+
+      if (addHistory) addToHistory(result);
+      showDrawSuccess();
+      showSignupModalAfterDraw();
+      return result;
+    }
+
+    async function loadWinningNumbers() {
+      winnersList.innerHTML = '<li class="loading-msg">역대 당첨번호를 불러오는 중...</li>';
+
+      for (const url of LOTTO_URLS) {
+        try {
+          const res = await fetch(url);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (!Array.isArray(data) || data.length === 0) continue;
+          return data;
+        } catch {
+          continue;
+        }
+      }
+
+      throw new Error("데이터를 불러오지 못했습니다.");
+    }
+
+    function applyWinnerFilters() {
+      const round = roundSearch.value.trim();
+      const number = numberFilter.value.trim();
+
+      filteredWinners = allWinners.filter((item) => {
+        if (round && item.draw_no !== Number(round)) return false;
+        if (number) {
+          const n = Number(number);
+          const nums = [...item.numbers, item.bonus_no];
+          if (!nums.includes(n)) return false;
+        }
+        return true;
+      });
+
+      visibleCount = PAGE_SIZE;
+      renderWinners();
+    }
+
+    function renderWinners() {
+      winnersList.innerHTML = "";
+
+      if (filteredWinners.length === 0) {
+        const empty = document.createElement("li");
+        empty.className = "empty-msg";
+        empty.textContent = "조건에 맞는 당첨번호가 없습니다.";
+        winnersList.appendChild(empty);
+        winnersFooter.hidden = true;
+        return;
+      }
+
+      const slice = filteredWinners.slice(0, visibleCount);
+      slice.forEach((item) => {
+        const li = document.createElement("li");
+        li.className = "list-item";
+
+        const idx = document.createElement("span");
+        idx.className = "list-index";
+        idx.textContent = `${item.draw_no}회`;
+
+        const balls = document.createElement("div");
+        balls.className = "list-balls";
+        renderBallGroup(balls, item.numbers, item.bonus_no);
+
+        const date = document.createElement("span");
+        date.className = "list-date";
+        date.textContent = formatDate(item.date);
+
+        li.appendChild(idx);
+        li.appendChild(balls);
+        li.appendChild(date);
+        winnersList.appendChild(li);
+      });
+
+      const hasMore = visibleCount < filteredWinners.length;
+      winnersFooter.hidden = !hasMore;
+      loadMoreBtn.disabled = !hasMore;
+    }
+
+    async function initWinners() {
+      try {
+        allWinners = await loadWinningNumbers();
+        allWinners.sort((a, b) => b.draw_no - a.draw_no);
+        filteredWinners = allWinners;
+
+        const latest = allWinners[0];
+        const oldest = allWinners[allWinners.length - 1];
+        winnersMeta.textContent = `${oldest.draw_no}회(${formatDate(oldest.date)}) ~ ${latest.draw_no}회(${formatDate(latest.date)}) · 총 ${allWinners.length}회`;
+
+        updateBottomWidget(latest);
+        renderWinners();
+      } catch (error) {
+        winnersList.innerHTML = `<li class="error-msg">${error.message}<br>인터넷 연결을 확인한 뒤 새로고침해 주세요.</li>`;
+        winnersMeta.textContent = "데이터 로드 실패";
+        winnersFooter.hidden = true;
+        widgetContent.textContent = "데이터를 불러오지 못했습니다.";
+      }
+    }
+
+    drawBtn.addEventListener("click", async () => {
+      if (isDrawing) return;
+      setDrawingState(true);
+      try {
+        await drawOnce();
+      } finally {
+        setDrawingState(false);
+      }
+    });
+
+    autoBtn.addEventListener("click", async () => {
+      if (isDrawing) return;
+      setDrawingState(true);
+      try {
+        const count = Number(setCount.value);
+        for (let i = 0; i < count; i++) {
+          const result = pickNumbers();
+          if (i === 0 && animateDraw.checked) {
+            renderPlaceholderBalls();
+            await animateDrawResult(result);
+          } else if (i === 0) {
+            showResultInstant(result);
+          }
+          addToHistory(result);
+          if (i < count - 1) await sleep(120);
+        }
+        showDrawSuccess();
+        showSignupModalAfterDraw();
+      } finally {
+        setDrawingState(false);
+      }
+    });
+
+    signupClose.addEventListener("click", closeSignupModal);
+    signupLaterBtn.addEventListener("click", closeSignupModal);
+    signupDoneBtn.addEventListener("click", closeSignupModal);
+    signupSubmitBtn.addEventListener("click", submitSignup);
+    signupPhone.addEventListener("input", () => {
+      signupPhone.value = formatPhone(signupPhone.value);
+    });
+    signupModal.addEventListener("click", (e) => {
+      if (e.target === signupModal) closeSignupModal();
+    });
+    signupForm.addEventListener("submit", (e) => {
+      e.preventDefault();
+      submitSignup();
+    });
+
+    clearBtn.addEventListener("click", openConfirmModal);
+    modalClose.addEventListener("click", closeConfirmModal);
+    modalCancel.addEventListener("click", closeConfirmModal);
+    modalConfirm.addEventListener("click", () => {
+      history = [];
+      saveHistory();
+      renderHistory();
+      closeConfirmModal();
+    });
+
+    confirmModal.addEventListener("click", (e) => {
+      if (e.target === confirmModal) closeConfirmModal();
+    });
+
+    roundSearch.addEventListener("input", applyWinnerFilters);
+    numberFilter.addEventListener("input", applyWinnerFilters);
+
+    resetFilterBtn.addEventListener("click", () => {
+      roundSearch.value = "";
+      numberFilter.value = "";
+      filteredWinners = allWinners;
+      visibleCount = PAGE_SIZE;
+      renderWinners();
+    });
+
+    loadMoreBtn.addEventListener("click", () => {
+      visibleCount += PAGE_SIZE;
+      renderWinners();
+    });
+
+    navTabs.forEach((tab) => {
+      tab.addEventListener("click", () => {
+        navTabs.forEach((t) => t.classList.remove("active"));
+        tab.classList.add("active");
+      });
+    });
+
+    window.addEventListener("scroll", updateActiveNav, { passive: true });
+
+    function loadBirthDate() {
+      const saved = localStorage.getItem("lotto-birthdate");
+      if (saved) birthDateInput.value = saved;
+    }
+
+    function saveBirthDate() {
+      if (birthDateInput.value) {
+        localStorage.setItem("lotto-birthdate", birthDateInput.value);
+      }
+    }
+
+    function appendChatBubble(role, html, extraClass = "") {
+      const bubble = document.createElement("div");
+      bubble.className = `chat-bubble ${role} ${extraClass}`.trim();
+      bubble.innerHTML = html;
+      chatMessages.appendChild(bubble);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return bubble;
+    }
+
+    function renderRecommendationBubble(result) {
+      const ballsWrap = document.createElement("div");
+      ballsWrap.className = "chat-balls";
+      renderBallGroup(ballsWrap, result.numbers, result.bonus);
+
+      const actions = document.createElement("div");
+      actions.className = "chat-actions";
+      const applyBtn = document.createElement("button");
+      applyBtn.className = "btn-secondary";
+      applyBtn.type = "button";
+      applyBtn.textContent = "추첨 화면에 적용";
+      applyBtn.addEventListener("click", () => {
+        showResultInstant({ main: result.numbers, bonus: result.bonus });
+        document.getElementById("draw").scrollIntoView({ behavior: "smooth" });
+      });
+
+      const saveBtn = document.createElement("button");
+      saveBtn.className = "btn-secondary";
+      saveBtn.type = "button";
+      saveBtn.textContent = "기록에 저장";
+      saveBtn.addEventListener("click", () => {
+        addToHistory({ main: result.numbers, bonus: result.bonus });
+      });
+
+      actions.appendChild(applyBtn);
+      actions.appendChild(saveBtn);
+
+      const bubble = document.createElement("div");
+      bubble.className = "chat-bubble assistant";
+      bubble.innerHTML = `
+        <div class="chat-label">AI 추천 번호</div>
+        <div class="chat-fortune"><strong>오늘의 운세</strong><br>${escapeHtml(result.fortune)}</div>
+        <div class="chat-explanation"><strong>추천 이유</strong><br>${escapeHtml(result.explanation)}</div>
+      `;
+      bubble.appendChild(ballsWrap);
+      bubble.appendChild(actions);
+      chatMessages.appendChild(bubble);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement("div");
+      div.textContent = text;
+      return div.innerHTML;
+    }
+
+    function setChatLoading(loading) {
+      isChatLoading = loading;
+      recommendBtn.disabled = loading;
+      chatSendBtn.disabled = loading;
+      chatInput.disabled = loading;
+    }
+
+    async function requestRecommendation(userMessage = "오늘의 운세를 반영해 로또 번호를 추천해 주세요.") {
+      const birthDate = birthDateInput.value;
+      if (!birthDate) {
+        document.getElementById("chatbot").scrollIntoView({ behavior: "smooth" });
+        appendChatBubble("assistant", "생년월일을 먼저 입력해 주세요. 번호 추첨 영역에서 생년월일을 선택한 뒤 <strong>오늘의 번호 추천받기</strong>를 눌러주세요.");
+        birthDateInput.focus();
+        return;
+      }
+
+      document.getElementById("chatbot").scrollIntoView({ behavior: "smooth" });
+      saveBirthDate();
+      chatHistory.push({ role: "user", content: userMessage });
+      appendChatBubble("user", escapeHtml(userMessage));
+
+      const loadingBubble = appendChatBubble("assistant", "운세를 분석하고 번호를 추천하는 중...", "loading");
+      setChatLoading(true);
+
+      try {
+        const res = await fetch("/api/recommend", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ birthDate, messages: chatHistory }),
+        });
+
+        const data = await res.json();
+        loadingBubble.remove();
+
+        if (!res.ok) {
+          appendChatBubble("assistant", escapeHtml(data.error || "추천에 실패했습니다."));
+          chatHistory.pop();
+          return;
+        }
+
+        renderRecommendationBubble(data);
+        chatHistory.push({
+          role: "assistant",
+          content: `추천 번호: ${data.numbers.join(", ")} + ${data.bonus}. 운세: ${data.fortune}. 이유: ${data.explanation}`,
+        });
+      } catch {
+        loadingBubble.remove();
+        appendChatBubble(
+          "assistant",
+          "API 서버에 연결할 수 없습니다. Vercel에 배포하고 GEMINI_API_KEY 환경변수를 설정했는지 확인해 주세요."
+        );
+        chatHistory.pop();
+      } finally {
+        setChatLoading(false);
+      }
+    }
+
+    function initChatbot() {
+      loadBirthDate();
+      appendChatBubble(
+        "assistant",
+        "안녕하세요! 위 <strong>번호 추첨</strong> 영역에서 생년월일을 입력하고 <strong>오늘의 번호 추천받기</strong>를 누르면, 오늘의 운세와 사주를 반영한 로또 번호와 추천 이유를 알려드립니다."
+      );
+    }
+
+    recommendBtn.addEventListener("click", () => requestRecommendation());
+    chatSendBtn.addEventListener("click", () => {
+      const text = chatInput.value.trim();
+      if (!text || isChatLoading) return;
+      chatInput.value = "";
+      requestRecommendation(text);
+    });
+    chatInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        chatSendBtn.click();
+      }
+    });
+    birthDateInput.addEventListener("change", saveBirthDate);
+
+    renderPlaceholderBalls();
+    renderHistory();
+    initWinners();
+    initChatbot();
+    updateActiveNav();
+  </script>
+</body>
+</html>
